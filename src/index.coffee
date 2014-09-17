@@ -7,16 +7,13 @@ module.exports = class StaticPhantomRenderer
 	brunchPlugin: yes
 
 	constructor: (@config) ->
-		production = @config.env.indexOf('production') > -1
-		production = production or @config.optimize
-		@enabled = production and !!@config.plugins.staticPhantomRenderer
-		console.log @enabled
+		@enabled = !!@config.plugins.staticPhantomRenderer and @config.plugins.staticPhantomRenderer.enabled
 		return unless @enabled
 
 		@paths = @config.plugins.staticPhantomRenderer.paths
 		@host = @config.plugins.staticPhantomRenderer.host
 		@timeout = @config.plugins.staticPhantomRenderer.timeout
-		@public = @config.paths.public
+		@public = @config.plugins.staticPhantomRenderer.outputDir or @config.paths.public
 		@loadPaths = []
 
 	onCompile: (data, path, callback) ->
@@ -52,9 +49,8 @@ module.exports = class StaticPhantomRenderer
 			port = 1823
 
 		@host = "http://localhost:#{port}/"
-		console.log @host
 		args = ['-p', port, @public]
-		@server = exec "node_modules/static-phantom-renderer-brunch/node_modules/http-server/bin/http-server #{args.join(' ')}", (error, stdout, stderr) =>
+		@server = exec "node_modules/http-server/bin/http-server #{args.join(' ')}", (error, stdout, stderr) =>
 			if error
 				console.log error
 				unless error.killed
@@ -62,12 +58,13 @@ module.exports = class StaticPhantomRenderer
 				return
 
 		@server.stdout.on 'data', (data) =>
-			console.log 'data'
-			console.log data
 			if fn
 				console.log "[static-renderer]: rendering #{@public} hosted on #{@host}"
 				fn.call(this)
 			fn = null
+
+		@server.stdout.on 'error', (err) =>
+			console.log err
 
 	render: ->
 		procs = []

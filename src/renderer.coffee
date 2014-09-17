@@ -19,10 +19,25 @@ unless fs.isFile 'app/assets/index.html'
 
 index = fs.read 'app/assets/index.html'
 
-renderPage = (page, phantom) ->	
+
+page.open address, (status) ->
+	if (status isnt 'success')
+		console.log('FAIL to load the address', address)
+		phantom.exit()
+	else
+		if timeout
+			window.setTimeout( ->
+				renderPage(phantom)
+			, timeout)
+		else
+			renderPage(phantom)
+
+
+renderPage = (phantom) ->	
 	page.viewportSize = { width: 320, height: 480 }
 	document = page.evaluate () ->
 		return document.getElementsByTagName('html')[0].outerHTML
+	# console.log document
 
 	beginIndex = index.indexOf '<!-- static-renderer BEGIN -->'
 	beginDocument = document.indexOf '<!-- static-renderer BEGIN -->'
@@ -41,22 +56,10 @@ renderPage = (page, phantom) ->
 		post = index.slice endIndex, index.length
 	if endDocument isnt -1
 		document = document.slice 0, endDocument
-	console.log document
 	html = pre + document + post
+	# console.log html
 
 	console.log 'writing', path.join(dir, filename) 
 	fs.write path.join(dir, filename), html, 'w'
 
 	phantom.exit()
-
-page.open address, (status) ->
-	if (status isnt 'success')
-		console.log('FAIL to load the address', address)
-		phantom.exit()
-	else
-		if timeout
-			window.setTimeout( ->
-				renderPage(page, phantom)
-			, timeout)
-		else
-			renderPage(page, phantom)
