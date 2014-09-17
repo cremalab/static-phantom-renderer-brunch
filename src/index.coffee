@@ -8,7 +8,7 @@ module.exports = class StaticPhantomRenderer
 
 	constructor: (@config) ->
 		@enabled = @config.production and !!@config.staticPhantomRenderer
-		console.log @enabled
+		console.log @config
 		return unless @enabled
 
 		@paths = @config.staticPhantomRenderer.paths
