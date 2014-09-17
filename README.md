@@ -12,7 +12,7 @@ brew install phantomjs
 
 ## Config
 ```coffeescript
-	imageoptimizer:
+	staticPhantomRenderer:
 		paths: ['', 'projects', 'projects/[0..3]', 'team'] # required: list of paths to render
 		host: http://localhost:8080 # optional, host used to render
 ```
