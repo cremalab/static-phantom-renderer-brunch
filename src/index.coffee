@@ -11,11 +11,11 @@ module.exports = class StaticPhantomRenderer
 		production = production or @config.optimize
 		@enabled = production and !!@config.plugins.staticPhantomRenderer
 		console.log @enabled
-		console.log @config
 		return unless @enabled
 
 		@paths = @config.plugins.staticPhantomRenderer.paths
 		@host = @config.plugins.staticPhantomRenderer.host
+		@timeout = @config.plugins.staticPhantomRenderer.timeout
 		@public = @config.paths.public
 		@loadPaths = []
 
@@ -34,6 +34,7 @@ module.exports = class StaticPhantomRenderer
 				else
 					@loadPaths.push path
 
+			console.log @loadPaths
 			# starting server, unless host given
 			unless @host
 				@startServer @render
@@ -51,14 +52,18 @@ module.exports = class StaticPhantomRenderer
 			port = 1823
 
 		@host = "http://localhost:#{port}/"
+		console.log @host
 		args = ['-p', port, @public]
 		@server = exec "http-server #{args.join(' ')}", (error, stdout, stderr) =>
 			if error
+				console.log error
 				unless error.killed
 					@startServer port + 1, fn
 				return
 
 		@server.stdout.on 'data', (data) =>
+			console.log 'data'
+			console.log data
 			if fn
 				console.log "[static-renderer]: rendering #{@public} hosted on #{@host}"
 				fn.call(this)
@@ -67,9 +72,10 @@ module.exports = class StaticPhantomRenderer
 	render: ->
 		procs = []
 		_.each @loadPaths, (path) =>
+			console.log path
 			# calling the renderer for each path
 			filename = sysPath.join path, 'index.html'
-			proc = exec "phantomjs node_modules/static-phantom-renderer-brunch/lib/renderer.js #{@host}##{path} #{@public} #{filename}", (error, stdout, stderr) ->
+			proc = exec "phantomjs node_modules/static-phantom-renderer-brunch/lib/renderer.js #{@host}#{path} #{@public} #{filename} #{@timeout}", (error, stdout, stderr) ->
 				console.log '[static-renderer]: ' + stdout if stdout
 				console.error '[static-renderer]: ' + stderr if stderr
 				console.error error if error
