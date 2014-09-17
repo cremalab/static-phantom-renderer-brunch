@@ -41,7 +41,7 @@ renderPage = (page, phantom) ->
 		post = index.slice endIndex, index.length
 	if endDocument isnt -1
 		document = document.slice 0, endDocument
-
+	console.log document
 	html = pre + document + post
 
 	console.log 'writing', path.join(dir, filename) 
@@ -54,7 +54,6 @@ page.open address, (status) ->
 		console.log('FAIL to load the address', address)
 		phantom.exit()
 	else
-		console.log timeout
 		if timeout
 			window.setTimeout( ->
 				renderPage(page, phantom)

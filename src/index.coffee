@@ -54,7 +54,7 @@ module.exports = class StaticPhantomRenderer
 		@host = "http://localhost:#{port}/"
 		console.log @host
 		args = ['-p', port, @public]
-		@server = exec "http-server #{args.join(' ')}", (error, stdout, stderr) =>
+		@server = exec "node_modules/static-phantom-renderer-brunch/node_modules/http-server/bin/http-server #{args.join(' ')}", (error, stdout, stderr) =>
 			if error
 				console.log error
 				unless error.killed
