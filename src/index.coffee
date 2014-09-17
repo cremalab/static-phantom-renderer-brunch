@@ -7,7 +7,10 @@ module.exports = class StaticPhantomRenderer
 	brunchPlugin: yes
 
 	constructor: (@config) ->
-		@enabled = @config.production and !!@config.plugins.staticPhantomRenderer
+		production = @config.env.indexOf('production') > -1
+		production = production or @config.optimize
+		@enabled = production and !!@config.plugins.staticPhantomRenderer
+		console.log @enabled
 		console.log @config
 		return unless @enabled
 
