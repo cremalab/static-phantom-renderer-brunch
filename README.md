@@ -12,9 +12,13 @@ brew install phantomjs
 
 ## Config
 ```coffeescript
-	imageoptimizer:
-		paths: ['', 'projects', 'projects/[0..3]', 'team'] # required: list of paths to render
-		host: http://localhost:8080 # optional, host used to render
+    plugins:
+    	staticPhantomRenderer:
+            enabled: true # must be defined
+    		paths: ['', 'projects', 'projects/[0..3]', 'team'] # required: list of paths to render
+    		host: http://localhost:8080 # optional, host used to render
+            timeout: 2000 # optional timeout for pages to load before writing file. Useful for AJAX requests
+            outputDir: '/static' # optional output directory. defaults to config.paths.public
 ```
 Paths should be a list of strings, each representing a page to be rendered. You can indicate id ranges with [a..b].
 If host is omitted, it will start a node http-server serving the public folder. But you can use this option to start a server by yourself before building the project. 

@@ -7,13 +7,13 @@ module.exports = class StaticPhantomRenderer
 	brunchPlugin: yes
 
 	constructor: (@config) ->
-		@enabled = @config.optimize and !!@config.staticPhantomRenderer
-
+		@enabled = !!@config.plugins.staticPhantomRenderer and @config.plugins.staticPhantomRenderer.enabled
 		return unless @enabled
 
-		@paths = @config.staticPhantomRenderer.paths
-		@host = @config.staticPhantomRenderer.host
-		@public = @config.paths.public
+		@paths = @config.plugins.staticPhantomRenderer.paths
+		@host = @config.plugins.staticPhantomRenderer.host
+		@timeout = @config.plugins.staticPhantomRenderer.timeout
+		@public = @config.plugins.staticPhantomRenderer.outputDir or @config.paths.public
 		@loadPaths = []
 
 	onCompile: (data, path, callback) ->
@@ -31,6 +31,7 @@ module.exports = class StaticPhantomRenderer
 				else
 					@loadPaths.push path
 
+			console.log @loadPaths
 			# starting server, unless host given
 			unless @host
 				@startServer @render
@@ -49,8 +50,9 @@ module.exports = class StaticPhantomRenderer
 
 		@host = "http://localhost:#{port}/"
 		args = ['-p', port, @public]
-		@server = exec "http-server #{args.join(' ')}", (error, stdout, stderr) =>
+		@server = exec "node_modules/http-server/bin/http-server #{args.join(' ')}", (error, stdout, stderr) =>
 			if error
+				console.log error
 				unless error.killed
 					@startServer port + 1, fn
 				return
@@ -61,12 +63,16 @@ module.exports = class StaticPhantomRenderer
 				fn.call(this)
 			fn = null
 
+		@server.stdout.on 'error', (err) =>
+			console.log err
+
 	render: ->
 		procs = []
 		_.each @loadPaths, (path) =>
+			console.log path
 			# calling the renderer for each path
 			filename = sysPath.join path, 'index.html'
-			proc = exec "phantomjs node_modules/static-phantom-renderer-brunch/lib/renderer.js #{@host}##{path} #{@public} #{filename}", (error, stdout, stderr) ->
+			proc = exec "phantomjs node_modules/static-phantom-renderer-brunch/lib/renderer.js #{@host}#{path} #{@public} #{filename} #{@timeout}", (error, stdout, stderr) ->
 				console.log '[static-renderer]: ' + stdout if stdout
 				console.error '[static-renderer]: ' + stderr if stderr
 				console.error error if error
